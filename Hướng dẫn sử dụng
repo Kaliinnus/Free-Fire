@@ -1,0 +1,82 @@
+Để mã nguồn "All-in-One" phía trên hoạt động mượt mà trong Unity và quản lý bằng Visual Studio Code, bạn cần thực hiện theo các bước thiết lập dưới đây. Tôi đã chia nhỏ quy trình thành từng bước dễ hiểu nhất cho người mới.
+​1. Chuẩn bị Môi trường Lập trình
+​Cài đặt Unity: Mở Unity Hub, cài đặt phiên bản 2021.3 LTS hoặc mới hơn. Khi tạo Project, hãy chọn Template 3D Core.
+​Cài đặt VS Code: * Tải VS Code từ trang chủ.
+​Vào phần Extensions (phím tắt Ctrl+Shift+X), cài đặt các gói: C#, C# Dev Kit, và Unity.
+​Kết nối Unity với VS Code: * Trong Unity, vào menu Edit > Preferences.
+​Chọn mục External Tools.
+​Tại dòng External Script Editor, chọn Visual Studio Code.
+​2. Thiết lập Script trong Unity
+​Tại cửa sổ Project (phía dưới), chuột phải vào thư mục Assets > Create > C# Script.
+​Đặt tên chính xác là: FreeFireMaster (Lưu ý: Tên file phải trùng khớp với tên class trong code).
+​Chuột phải vào file vừa tạo, chọn Open, VS Code sẽ hiện ra.
+​Xóa toàn bộ nội dung mặc định và Dán đoạn code gộp mà tôi đã cung cấp ở phản hồi trước vào. Nhấn Ctrl + S để lưu.
+​3. Xây dựng Cấu trúc Scene (Bản đồ Game)
+​Bạn cần tạo các đối tượng cơ bản để code có cái để điều khiển:
+​Mặt đất: Chuột phải ở cửa sổ Hierarchy > 3D Object > Plane. Phóng to nó ra (Scale: 100, 1, 100).
+​Người chơi (Player):
+​Tạo một Capsule. Đặt tên là Player.
+​Tại cửa sổ Inspector, nhấn Add Component > Tìm và thêm Character Controller.
+​Tại dòng Tag (phía trên cùng Inspector), chọn Player.
+​Kéo file script FreeFireMaster thả trực tiếp vào đối tượng Player này.
+​Kẻ địch (Bot):
+​Tạo một Capsule khác, đặt tên là Enemy.
+​Đặt Tag cho nó là Enemy.
+​Thêm component NavMesh Agent.
+​Gắn script EnemyAI (nếu bạn tách ra) hoặc đảm bảo class EnemyAI có trong file gộp.
+​Vào Window > AI > Navigation > Nhấn nút Bake để Bot biết đường đi.
+​4. Kết nối các biến trong Inspector
+​Sau khi gắn Script vào Player, bạn sẽ thấy các ô trống trong cửa sổ Inspector. Hãy kéo thả như sau:
+​Player Cam: Kéo Camera chính (Main Camera) vào ô này.
+​Parachute Model: Tạo một khối 3D nhỏ gắn trên đầu người chơi và kéo vào đây (để nó ẩn đi khi tiếp đất).
+​Hud Text: Tạo một UI > Text (Legacy) và kéo vào ô này để hiện máu/đạn.
+​Lobby UI: Tạo một tấm nền UI > Panel chứa nút "Start", kéo vào đây để nó biến mất khi trận đấu bắt đầu.
+​5. Cách Điều khiển khi Chơi (PC Controls)
+​Khi bạn nhấn nút Play (Hình tam giác) trong Unity:
+​Trong Lobby: Chuột sẽ tự do, nhấn vào nút Start (nếu bạn đã gán sự kiện StartMatch).
+​Giai đoạn Nhảy dù: Nhân vật sẽ rơi tự do từ trên cao. Bạn không thể bắn lúc này.
+​Sau khi tiếp đất:
+​Di chuyển: Dùng các phím W, A, S, D.
+​Xoay góc nhìn: Di chuyển Chuột để nhìn xung quanh (Chuột đã bị khóa vào tâm).
+​Bắn (Fire): Nhấn Chuột trái.
+​Ngắm (Scope/Zoom): Giữ Chuột phải.
+​Thoát khóa chuột: Nhấn phím Esc trên bàn phím.
+​6. Mẹo Tùy chỉnh trong VS Code
+​Tăng sát thương: Tìm dòng damage = 30 và đổi thành số bạn muốn.
+​Đổi màu Skin: Tìm dòng Color.yellow và đổi thành Color.red, Color.blue...
+Để xuất (Build) trò chơi của bạn từ Unity thành một file cài đặt hoặc file thực thi (.exe) để gửi cho bạn bè chơi trên máy tính, bạn hãy thực hiện theo các bước chi tiết sau:
+​1. Chuẩn bị trước khi Build
+​Trước khi đóng gói, bạn cần đảm bảo các cài đặt sau đã chuẩn chỉnh:
+​Kiểm tra Scene: Đảm bảo bản đồ (Map) và Sảnh (Lobby) đã được lưu (Ctrl + S).
+​Giải quyết lỗi: Nếu trong cửa sổ Console của Unity có dòng chữ màu đỏ, bạn phải sửa hết lỗi code thì Unity mới cho phép Build.
+​2. Các bước xuất file (Build Settings)
+​Vào menu File > Build Settings... (hoặc nhấn Ctrl + Shift + B).
+​Scenes In Build: Nhấn vào nút Add Open Scenes để đưa bản đồ hiện tại vào danh sách. (Nếu bạn có cảnh Lobby riêng, hãy kéo nó lên đầu danh sách để game chạy Lobby trước).
+​Platform: Chọn PC, Mac & Linux Standalone.
+​Target Platform: Chọn Windows.
+​Architecture: Chọn x86_64 (đây là chuẩn cho các máy tính 64-bit hiện nay).
+​3. Tùy chỉnh thông tin Game (Player Settings)
+​Nhấn vào nút Player Settings... ở góc dưới bên trái cửa sổ Build Settings để làm cho game chuyên nghiệp hơn:
+​Company Name: Tên studio của bạn (ví dụ: "MyStudio").
+​Product Name: Tên trò chơi (ví dụ: "Free Fire Clone PC").
+​Version: 1.0.
+​Default Icon: Chọn một tấm hình vuông để làm biểu tượng (icon) cho file game.
+​Resolution: * Tại mục Fullscreen Mode, bạn nên chọn Fullscreen Window để dễ dàng chuyển đổi cửa sổ.
+​Đảm bảo tích chọn Allow Predefined Resolutions.
+​4. Tiến hành Build
+​Quay lại cửa sổ Build Settings, nhấn nút Build.
+​Unity sẽ yêu cầu bạn chọn một thư mục để lưu game.
+​Mẹo: Bạn nên tạo một thư mục mới tên là Build_Game để tránh lẫn lộn với các file code.
+​Nhấn Select Folder. Unity sẽ bắt đầu quá trình nén code, mô hình 3D và âm thanh thành file thực thi. Quá trình này mất từ 2-10 phút tùy độ nặng của Map.
+​5. Cách gửi cho bạn bè
+​Sau khi Build xong, trong thư mục bạn chọn sẽ xuất hiện:
+​Một file [TênGame].exe (Biểu tượng Unity hoặc icon bạn đã chọn).
+​Một thư mục [TênGame]_Data.
+​File UnityPlayer.dll và một số file khác.
+​LƯU Ý QUAN TRỌNG: Để gửi cho bạn bè, bạn không được chỉ gửi mỗi file .exe. Bạn phải bôi đen toàn bộ các file trong thư mục Build, sau đó Chuột phải > Compress to ZIP file (Nén thành file .zip). Bạn gửi file Zip đó cho bạn bè, họ chỉ cần giải nén và chạy file .exe là chơi được.
+​6. Khắc phục lỗi thường gặp khi Build
+​Lỗi "Script must derive from MonoBehaviour": Kiểm tra lại file FreeFireMaster.cs, đảm bảo tên class bên trong khớp hoàn toàn với tên file bên ngoài.
+​Lỗi "NavMesh not baked": Nếu Bot không di chuyển được sau khi Build, hãy quay lại Unity, vào cửa sổ Navigation và nhấn Bake lại trước khi Build lần nữa.
+​Màn hình đen: Do bạn chưa gán Camera vào các biến trong Script ở cửa sổ Inspector.
+
+​Độ nhạy chuột: Điều chỉnh biến mouseSensitivity ngay trong Unity Inspector mà không cần sửa code.
