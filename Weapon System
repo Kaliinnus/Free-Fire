@@ -1,0 +1,79 @@
+using UnityEngine;
+
+public class Weapon : MonoBehaviour
+{
+    public enum WeaponType { Rifle, Shotgun, Sniper, SMG }
+
+    [Header("Cấu hình súng")]
+    public string weaponName = "AK47";
+    public WeaponType type;
+    public float damage = 35f;
+    public float range = 100f;
+    public float fireRate = 0.1f; // Thời gian giữa 2 lần bắn
+    public int ammoPerMag = 30;
+    public int currentAmmo;
+
+    [Header("Hiệu ứng")]
+    public ParticleSystem muzzleFlash; // Tia lửa đầu nòng
+    public GameObject impactEffect;  // Hiệu ứng khi đạn trúng vật thể
+
+    private float nextTimeToFire = 0f;
+
+    void Start()
+    {
+        currentAmmo = ammoPerMag;
+    }
+
+    void Update()
+    {
+        // Nhấn chuột trái để bắn
+        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
+        {
+            nextTimeToFire = Time.time + fireRate;
+            Shoot();
+        }
+    }
+
+    void Shoot()
+    {
+        if (currentAmmo <= 0)
+        {
+            Debug.Log("Hết đạn!");
+            return;
+        }
+
+        currentAmmo--;
+        muzzleFlash.Play();
+
+        RaycastHit hit;
+        // Sử dụng Raycast để mô phỏng đường đi của đạn
+        if (Physics.Raycast(transform.position, transform.forward, out hit, range))
+        {
+            Debug.Log("Trúng: " + hit.transform.name);
+
+            // Kiểm tra nếu trúng kẻ địch
+            PlayerHealth target = hit.transform.GetComponent<PlayerHealth>();
+            if (target != null)
+            {
+                // Tính toán sát thương (có thể cộng thêm tỷ lệ chí mạng nếu trúng đầu)
+                float finalDamage = CalculateDamage(hit);
+                target.TakeDamage(finalDamage);
+            }
+
+            // Tạo hiệu ứng va chạm tại điểm trúng
+            GameObject impact = Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
+            Destroy(impact, 2f);
+        }
+    }
+
+    float CalculateDamage(RaycastHit hit)
+    {
+        // Ví dụ đơn giản về Headshot
+        if (hit.collider is SphereCollider) // Giả sử đầu dùng SphereCollider
+        {
+            Debug.Log("HEADSHOT!");
+            return damage * 2.5f;
+        }
+        return damage;
+    }
+}
