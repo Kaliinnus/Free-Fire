@@ -1,0 +1,11 @@
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "New Character", menuName = "FreeFire/Character")]
+public class CharacterData : ScriptableObject
+{
+    public string characterName;
+    public GameObject modelPrefab; // Model 3D của nhân vật
+    public float bonusHealth;      // Máu cộng thêm
+    public float speedMultiplier;  // Tốc độ chạy cộng thêm
+    public string skillDescription;
+}
