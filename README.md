@@ -17,3 +17,9 @@ Weapon Tab Nơi chọn skin súng (tương tự như cách chọn nhân vật).
 ​Tạo dự án 3D (Universal Render Pipeline).
 ​Tạo các file C# theo tên tôi đã đặt và dán code vào.
 ​Tải các Model miễn phí trên Unity Asset Store (tìm từ khóa "Soldier" hoặc "Gun") để gán vào các biến public.
+
+💛file FreeFireMaster....
+❤️FreeFireMaster.cs
+🧡FreeFireFullSystem....
+💚FuLL
+🩵3 file test game hoàn chỉnh FULL🩷
