@@ -1,0 +1,11 @@
+[CreateAssetMenu(fileName = "New Weapon", menuName = "Guns/Weapon Data")]
+public class WeaponData : ScriptableObject
+{
+    public string gunName;
+    public float damage;
+    public float fireRate;
+    public float reloadTime;
+    public int magSize;
+    public Sprite icon;
+    public GameObject modelPrefab;
+}
