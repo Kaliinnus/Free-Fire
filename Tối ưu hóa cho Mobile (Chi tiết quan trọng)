@@ -1,0 +1,4 @@
+void Awake() {
+    // Giới hạn 60 FPS để mượt mà nhưng không tốn pin quá mức
+    Application.targetFrameRate = 60;
+}
