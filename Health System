@@ -1,0 +1,60 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerHealth : MonoBehaviour
+{
+    [Header("Chỉ số cơ bản")]
+    public float maxHealth = 200f;
+    public float currentHealth;
+    public bool isDead = false;
+
+    [Header("Giao diện UI")]
+    public Slider healthBar; // Thanh máu hiển thị trên màn hình
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+        UpdateHealthUI();
+    }
+
+    // Hàm nhận sát thương
+    public void TakeDamage(float damage)
+    {
+        if (isDead) return;
+
+        currentHealth -= damage;
+        Debug.Log("Người chơi nhận " + damage + " sát thương. Máu còn: " + currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+
+        UpdateHealthUI();
+    }
+
+    // Hàm hồi máu (Medkit)
+    public void Heal(float amount)
+    {
+        if (isDead) return;
+        currentHealth += amount;
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
+        UpdateHealthUI();
+    }
+
+    void UpdateHealthUI()
+    {
+        if (healthBar != null)
+        {
+            healthBar.value = currentHealth / maxHealth;
+        }
+    }
+
+    void Die()
+    {
+        isDead = true;
+        currentHealth = 0;
+        Debug.Log("Người chơi đã bị loại khỏi trận đấu!");
+        // Thêm logic hiệu ứng chết, hiện bảng thông báo...
+    }
+}
