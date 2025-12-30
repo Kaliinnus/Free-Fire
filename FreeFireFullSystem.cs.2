@@ -1,0 +1,238 @@
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.AI;
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+
+// ========================================================
+// HỆ THỐNG QUẢN LÝ GAME TỔNG HỢP (FREE FIRE ALL-IN-ONE)
+// ========================================================
+
+namespace FreeFireClone
+{
+    // --- 1. DỮ LIỆU VÀ CẤU TRÚC ---
+    [System.Serializable]
+    public class WeaponStats
+    {
+        public string name;
+        public float damage;
+        public float fireRate;
+        public int ammo;
+        public int maxAmmo;
+        public float range;
+    }
+
+    // --- 2. HỆ THỐNG ĐIỀU KHIỂN CHÍNH (PLAYER & COMBAT) ---
+    public class FreeFirePlayer : MonoBehaviour
+    {
+        [Header("Chỉ số sinh tồn")]
+        public float health = 200f;
+        public float maxHealth = 200f;
+        public bool isDead = false;
+
+        [Header("Vũ khí")]
+        public List<WeaponStats> inventory = new List<WeaponStats>();
+        public int currentWpIndex = 0;
+        private float nextFireTime = 0f;
+
+        [Header("Nhảy dù")]
+        public bool isParachuting = true;
+        public float fallSpeed = 20f;
+        public GameObject parachuteModel;
+
+        [Header("UI")]
+        public Text infoUI;
+        public Image bloodOverlay;
+
+        private CharacterController controller;
+
+        void Start()
+        {
+            controller = GetComponent<CharacterController>();
+            // Khởi tạo vũ khí mặc định
+            inventory.Add(new WeaponStats { name = "AK47", damage = 35, fireRate = 0.12f, ammo = 30, maxAmmo = 30, range = 100 });
+            inventory.Add(new WeaponStats { name = "MP40", damage = 22, fireRate = 0.08f, ammo = 35, maxAmmo = 35, range = 40 });
+        }
+
+        void Update()
+        {
+            if (isDead) return;
+
+            if (isParachuting)
+            {
+                HandleParachute();
+            }
+            else
+            {
+                HandleMovement();
+                HandleCombat();
+            }
+            UpdateUI();
+        }
+
+        void HandleMovement()
+        {
+            float x = Input.GetAxis("Horizontal");
+            float z = Input.GetAxis("Vertical");
+            Vector3 move = transform.right * x + transform.forward * z;
+            controller.Move(move * 7f * Time.deltaTime);
+        }
+
+        void HandleParachute()
+        {
+            controller.Move(Vector3.down * fallSpeed * Time.deltaTime);
+            if (controller.isGrounded)
+            {
+                isParachuting = false;
+                if (parachuteModel) parachuteModel.SetActive(false);
+                Debug.Log("Tiếp đất an toàn!");
+            }
+        }
+
+        void HandleCombat()
+        {
+            if (Input.GetButton("Fire1") && Time.time >= nextFireTime)
+            {
+                WeaponStats currentWp = inventory[currentWpIndex];
+                if (currentWp.ammo > 0)
+                {
+                    nextFireTime = Time.time + currentWp.fireRate;
+                    Shoot(currentWp);
+                }
+            }
+        }
+
+        void Shoot(WeaponStats wp)
+        {
+            wp.ammo--;
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, transform.forward, out hit, wp.range))
+            {
+                if (hit.transform.CompareTag("Enemy"))
+                {
+                    EnemyBot bot = hit.transform.GetComponent<EnemyBot>();
+                    if (bot) bot.TakeDamage(wp.damage);
+                }
+            }
+        }
+
+        public void TakeDamage(float amount)
+        {
+            health -= amount;
+            if (health <= 0) Die();
+        }
+
+        void Die()
+        {
+            isDead = true;
+            Debug.Log("Bạn đã bị loại!");
+        }
+
+        void UpdateUI()
+        {
+            if (infoUI)
+                infoUI.text = $"HP: {health} | {inventory[currentWpIndex].name}: {inventory[currentWpIndex].ammo}";
+        }
+    }
+
+    // --- 3. HỆ THỐNG AI (BOT KẺ ĐỊCH) ---
+    public class EnemyBot : MonoBehaviour
+    {
+        public float health = 100f;
+        public float attackDamage = 10f;
+        public Transform target;
+        private NavMeshAgent agent;
+        private float lastAttackTime;
+
+        void Start()
+        {
+            agent = GetComponent<NavMeshAgent>();
+            target = GameObject.FindGameObjectWithTag("Player").transform;
+        }
+
+        void Update()
+        {
+            if (health <= 0) return;
+
+            float dist = Vector3.Distance(transform.position, target.position);
+            if (dist < 20f)
+            {
+                agent.SetDestination(target.position);
+                if (dist < 10f && Time.time > lastAttackTime + 1.5f)
+                {
+                    Attack();
+                }
+            }
+        }
+
+        void Attack()
+        {
+            lastAttackTime = Time.time;
+            target.GetComponent<FreeFirePlayer>().TakeDamage(attackDamage);
+            Debug.Log("Bot đã bắn trúng bạn!");
+        }
+
+        public void TakeDamage(float dmg)
+        {
+            health -= dmg;
+            if (health <= 0) Destroy(gameObject, 1f);
+        }
+    }
+
+    // --- 4. HỆ THỐNG VÒNG BO (SAFE ZONE) ---
+    public class BattleZone : MonoBehaviour
+    {
+        public Transform zoneVisual;
+        public float shrinkSpeed = 0.5f;
+        public float damagePerSecond = 2f;
+        private float currentRadius = 200f;
+
+        void Update()
+        {
+            currentRadius -= shrinkSpeed * Time.deltaTime;
+            if (zoneVisual) zoneVisual.localScale = new Vector3(currentRadius, 1, currentRadius);
+
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (Vector3.Distance(player.transform.position, transform.position) > currentRadius)
+            {
+                player.GetComponent<FreeFirePlayer>().TakeDamage(damagePerSecond * Time.deltaTime);
+            }
+        }
+    }
+
+    // --- 5. HỆ THỐNG LOBBY & KINH TẾ ---
+    public class LobbyManager : MonoBehaviour
+    {
+        public int gold = 1000;
+        public string selectedCharacter = "Kelly";
+
+        public void BuyItem(int price)
+        {
+            if (gold >= price)
+            {
+                gold -= price;
+                PlayerPrefs.SetInt("PlayerGold", gold);
+                Debug.Log("Mua đồ thành công!");
+            }
+        }
+
+        public void StartGame()
+        {
+            SceneManager.LoadScene("GameScene");
+        }
+    }
+
+    // --- 6. HỆ THỐNG VẬT PHẨM (LOOT) ---
+    public class LootBox : MonoBehaviour
+    {
+        public int ammoBonus = 30;
+        void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Player"))
+            {
+                other.GetComponent<FreeFirePlayer>().inventory[0].ammo += ammoBonus;
+                Destroy(gameObject);
+            }
+        }
+    }
+}
