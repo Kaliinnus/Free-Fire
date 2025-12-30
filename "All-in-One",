@@ -1,0 +1,85 @@
+using UnityEngine;
+using UnityEngine.AI; // Cần có NavMesh để Bot di chuyển
+
+public class EnemyAI : MonoBehaviour
+{
+    [Header("Cấu hình Bot")]
+    public float enemyHealth = 100f;
+    public float sightRange = 20f;      // Tầm nhìn
+    public float attackRange = 10f;     // Tầm bắn
+    public float fireRate = 0.5f;       // Tốc độ bắn của Bot
+    public float damage = 10f;
+
+    [Header("Trạng thái")]
+    public Transform player;
+    private NavMeshAgent agent;
+    private float nextTimeToFire;
+    private bool isDead = false;
+
+    void Start()
+    {
+        agent = GetComponent<NavMeshAgent>();
+        // Tự động tìm người chơi trong cảnh bằng Tag
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+
+    void Update()
+    {
+        if (isDead) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+        if (distanceToPlayer <= sightRange && distanceToPlayer > attackRange)
+        {
+            ChasePlayer(); // Đuổi theo
+        }
+        else if (distanceToPlayer <= attackRange)
+        {
+            AttackPlayer(); // Tấn công
+        }
+    }
+
+    void ChasePlayer()
+    {
+        agent.SetDestination(player.position);
+    }
+
+    void AttackPlayer()
+    {
+        // Dừng lại để bắn
+        agent.SetDestination(transform.position);
+        
+        // Luôn nhìn về phía người chơi
+        transform.LookAt(player);
+
+        if (Time.time >= nextTimeToFire)
+        {
+            nextTimeToFire = Time.time + fireRate;
+            Shoot();
+        }
+    }
+
+    void Shoot()
+    {
+        Debug.Log("Bot đang bắn bạn!");
+        // Gây sát thương lên người chơi thông qua script FreeFireMini
+        FreeFireMini playerScript = player.GetComponent<FreeFireMini>();
+        if (playerScript != null)
+        {
+            playerScript.TakeDamageFromEnemy(damage);
+        }
+    }
+
+    public void TakeDamage(float amount)
+    {
+        enemyHealth -= amount;
+        if (enemyHealth <= 0) Die();
+    }
+
+    void Die()
+    {
+        isDead = true;
+        Debug.Log("Bot đã bị tiêu diệt!");
+        Destroy(gameObject, 2f); // Biến mất sau 2 giây
+    }
+}
