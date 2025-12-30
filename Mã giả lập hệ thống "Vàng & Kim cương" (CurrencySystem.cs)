@@ -1,0 +1,25 @@
+public static class GameEconomy
+{
+    // Lưu trữ bằng PlayerPrefs (Dữ liệu cục bộ trên điện thoại)
+    public static void AddGold(int amount)
+    {
+        int currentGold = PlayerPrefs.GetInt("Gold", 0);
+        PlayerPrefs.SetInt("Gold", currentGold + amount);
+    }
+
+    public static int GetGold()
+    {
+        return PlayerPrefs.GetInt("Gold", 0);
+    }
+
+    public static bool BuyItem(int price)
+    {
+        int gold = GetGold();
+        if (gold >= price)
+        {
+            AddGold(-price);
+            return true;
+        }
+        return false;
+    }
+}
